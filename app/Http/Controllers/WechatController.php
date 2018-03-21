@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use EasyWeChat\Message\Transfer;
 use Illuminate\Http\Request;
 use App\Http\Requests;
-use Log;
 use EasyWeChat\Foundation\Application;
+use EasyWeChat\Message\Image;
+use EasyWeChat\Message\News;
+use EasyWeChat\Message\Text;
 use App\WechatFollow;
 use App\WechatMenu;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class WechatController
@@ -96,4 +100,59 @@ class WechatController extends Controller
     }
 
 
+    /**
+     * 响应文本消息
+     * @param $message
+     * @return Text|Transfer
+     */
+    protected function handleText($message){
+        $text = new Text();
+        switch($message->Content){
+            case '##Menu**'://create menu
+                if(self::createMenu())
+                    $text->content = '创建菜单成功';
+                else
+                    $text->content = '创建菜单失败';
+
+                Log::debug("创建菜单");
+                return $text;
+            case '客服':
+                Log::debug("转发至客服系统");
+                return self::transferToKf($message);
+            default:
+                $text->content = '亲, 这个问题您可以通过回复[客服]两字转接到人工客服哦';
+                return $text;
+
+        }
+
+    }
+
+    /**
+     * 转发到多客服系统
+     * @param $message
+     * @return Transfer
+     */
+    protected function transferToKf($message){
+        return new Transfer();
+    }
+    /**
+     * 创建自定义菜单
+     * @return bool
+     */
+    protected function createMenu(){
+        $buttons =  [
+            [
+                "type"=>"view",
+                "name"=>"商城",
+                "url"=>url('/mall')
+            ]
+        ];
+
+        $menu = $this->wechat->menu;
+        if($menu->add($buttons)){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
