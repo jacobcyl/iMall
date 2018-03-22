@@ -34,78 +34,84 @@ class WechatController extends Controller
 
     public function serve()
     {
-
         $wechat = app('wechat');
         $server = $wechat->server;
         $userApi = $wechat->user;
 
         $server->setMessageHandler(function ($message) use ($userApi) {
-            // 获取当前粉丝openId
-            $openid = $message->FromUserName;
-            if ($message->MsgType == 'event') {
-                switch ($message->Event) {
-                    case'subscribe':
-                        // 获取当前粉丝基本信息
-                        $user = $userApi->get($openid);
-                        // 判断当前粉丝是否以前关注过
-                        $oldFollow = WechatFollow::where('openid', '=', $openid)->first();
-                        if ($oldFollow) {
-                            $follow['nickname'] = $user->nickname;
-                            $follow['sex'] = ($user->sex + 1);
-                            $follow['language'] = $user->language;
-                            $follow['city'] = $user->city;
-                            $follow['country'] = $user->country;
-                            $follow['province'] = $user->province;
-                            $follow['headimgurl'] = $user->headimgurl;
-                            $follow['remark'] = $user->remark;
-                            $follow['groupid'] = $user->groupid;
-                            $follow['is_subscribed'] = 2;
-                            WechatFollow::where('openid', '=', $openid)->update($follow);
-                            $welcome = "欢迎回来，" . $user->nickname ."\n\n进入商城闲逛一会吧，\n\n<a href=\"http://imall.lovchun.com/mall#!/index\">点击进入</a>";
-                            return $welcome;
-                        } else {
-                            // 录入数据库
-                            $follow = new WechatFollow();
-                            $follow->openid = $openid;
-                            $follow->nickname = $user->nickname;
-                            $follow->sex = ($user->sex + 1);
-                            $follow->language = $user->language;
-                            $follow->city = $user->city;
-                            $follow->country = $user->country;
-                            $follow->province = $user->province;
-                            $follow->headimgurl = $user->headimgurl;
-                            $follow->remark = $user->remark;
-                            $follow->groupid = $user->groupid;
-                            $follow->is_subscribed = 2;
-                            $follow->save();
-                            $welcome = "欢迎，" . $user->nickname ."\n\n进入商城闲逛一会吧，\n\n<a href=\"http://imall.lovchun.com/mall#!/index\">点击进入</a>";
-                            return $welcome;
-                        }
-                        break;
-                    case 'unsubscribe':
-                        WechatFollow::where('openid', '=', $openid)->update(['is_subscribed' => 1]);
-                        break;
-                    default:
-                        return '';
-                        break;
-                }
-            } else {
-                $user = $userApi->get($openid);
-                $welcome = "欢迎，" . $user->nickname ."\n\n进入商城闲逛一会吧，\n\n<a href=\"http://imall.lovchun.com/mall#!/index\">点击进入</a>";
-                return $welcome;
+            switch($message->MsgType){
+                case 'event':
+                    return $this->handleEvent($userApi, $message);
+                case 'text':
+                    return $this->handleText($userApi, $message);
+                case 'image':
+                case 'voice':
+                default:
+                    return '欢迎';
+
             }
         });
 
         return $server->serve();
     }
 
+    protected function handleEvent($userApi, $message) {
+        // 获取当前粉丝openId
+        $openid = $message->FromUserName;
+        switch ($message->Event) {
+            case'subscribe':
+                // 获取当前粉丝基本信息
+                $user = $userApi->get($openid);
+                // 判断当前粉丝是否以前关注过
+                $oldFollow = WechatFollow::where('openid', '=', $openid)->first();
+                if ($oldFollow) {
+                    $follow['nickname'] = $user->nickname;
+                    $follow['sex'] = ($user->sex + 1);
+                    $follow['language'] = $user->language;
+                    $follow['city'] = $user->city;
+                    $follow['country'] = $user->country;
+                    $follow['province'] = $user->province;
+                    $follow['headimgurl'] = $user->headimgurl;
+                    $follow['remark'] = $user->remark;
+                    $follow['groupid'] = $user->groupid;
+                    $follow['is_subscribed'] = 2;
+                    WechatFollow::where('openid', '=', $openid)->update($follow);
+                    $welcome = "欢迎回来，" . $user->nickname ."\n\n进入商城闲逛一会吧，\n\n<a href=\"http://imall.lovchun.com/mall#!/index\">点击进入</a>";
+                    return $welcome;
+                } else {
+                    // 录入数据库
+                    $follow = new WechatFollow();
+                    $follow->openid = $openid;
+                    $follow->nickname = $user->nickname;
+                    $follow->sex = ($user->sex + 1);
+                    $follow->language = $user->language;
+                    $follow->city = $user->city;
+                    $follow->country = $user->country;
+                    $follow->province = $user->province;
+                    $follow->headimgurl = $user->headimgurl;
+                    $follow->remark = $user->remark;
+                    $follow->groupid = $user->groupid;
+                    $follow->is_subscribed = 2;
+                    $follow->save();
+                    $welcome = "欢迎，" . $user->nickname ."\n\n进入商城闲逛一会吧，\n\n<a href=\"http://mall.henlink.com/mall#!/index\">点击进入</a>";
+                    return $welcome;
+                }
+                break;
+            case 'unsubscribe':
+                WechatFollow::where('openid', '=', $openid)->update(['is_subscribed' => 1]);
+                return;
+            default:
+                return;
+        }
+    }
 
     /**
      * 响应文本消息
+     * @param $userAPi
      * @param $message
      * @return Text|Transfer
      */
-    protected function handleText($message){
+    protected function handleText($userAPi, $message){
         $text = new Text();
         switch($message->Content){
             case '##Menu**'://create menu
