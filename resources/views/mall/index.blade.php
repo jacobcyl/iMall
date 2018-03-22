@@ -42,5 +42,10 @@
         wx.config(<?php echo $js->config([], FALSE) ?>);
     <?php }?>
 </script>
+
+<div style="color:gray; text-align: center">
+    <p>Copyright © 2017 - 2018</p>
+    <p>佛山瀚凌科技有限公司</p>
+</div>
 </body>
 </html>

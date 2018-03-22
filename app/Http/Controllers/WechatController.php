@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use EasyWeChat\Core\Exceptions\InvalidArgumentException;
 use EasyWeChat\Message\Transfer;
 use Illuminate\Http\Request;
 use App\Http\Requests;
@@ -33,19 +34,22 @@ class WechatController extends Controller
     {
         $server = $this->wechat->server;
 
-        $server->setMessageHandler(function ($message){
-            switch($message->MsgType){
-                case 'event':
-                    return $this->handleEvent($message);
-                case 'text':
-                    return $this->handleText($message);
-                case 'image':
-                case 'voice':
-                default:
-                    return '欢迎';
+        try {
+            $server->setMessageHandler(function ($message) {
+                switch ($message->MsgType) {
+                    case 'event':
+                        return $this->handleEvent($message);
+                    case 'text':
+                        return $this->handleText($message);
+                    case 'image':
+                    case 'voice':
+                    default:
+                        return '欢迎';
 
-            }
-        });
+                }
+            });
+        } catch (InvalidArgumentException $e) {
+        }
 
         return $server->serve();
     }
