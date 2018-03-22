@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>iMall</title>
+    <title>青麦生活商城</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
     <meta name="app-mobile-web-app-capable" content="yes">
     <meta id="csrf-token" content="{{ csrf_token() }}">
     <meta name="author" content="Zhang Lei">
-    <meta name="description" content="微信商城：iMall,基于Laravel5.2和vue.js">
-    <meta name="keywords" content="微信商城,laravel5.2,vue.js,vuex,vue-router,vue-resource">
+    <meta name="description" content="青麦生活，优质折扣">
+    <meta name="keywords" content="青麦生活，优质折扣">
     <!-- Favicon -->
     <link rel="icon" href="{{asset('favicon.png')}}" mce_href="{{asset('favicon.png')}}" type="image/png">
     <link rel="shortcut icon" href="{{asset('favicon.ico')}}" mce_href="{{asset('favicon.ico')}}" type=”image/x-icon”>
