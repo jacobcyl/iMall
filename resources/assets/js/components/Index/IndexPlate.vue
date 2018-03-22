@@ -29,7 +29,7 @@
             }
         },
         created(){
-            //this.fetchPlates();
+            this.fetchPlates();
         },
         methods:{
             fetchPlates:function(){
