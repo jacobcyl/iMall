@@ -19,31 +19,26 @@ use Illuminate\Support\Facades\Log;
  */
 class WechatController extends Controller
 {
+    protected $wechat;
 
     /**
-     * 处理微信请求
-     *
-     * @param Application $wechat
-     * @return mixed
+     * WechatController constructor.
      */
-
-    public function debug()
+    public function __construct(Application $wechat)
     {
-
+        $this->wechat = $wechat;
     }
 
     public function serve()
     {
-        $wechat = app('wechat');
-        $server = $wechat->server;
-        $userApi = $wechat->user;
+        $server = $this->wechat->server;
 
-        $server->setMessageHandler(function ($message) use ($userApi) {
+        $server->setMessageHandler(function ($message){
             switch($message->MsgType){
                 case 'event':
-                    return $this->handleEvent($userApi, $message);
+                    return $this->handleEvent($message);
                 case 'text':
-                    return $this->handleText($userApi, $message);
+                    return $this->handleText($message);
                 case 'image':
                 case 'voice':
                 default:
@@ -55,7 +50,8 @@ class WechatController extends Controller
         return $server->serve();
     }
 
-    protected function handleEvent($userApi, $message) {
+    protected function handleEvent($message) {
+        $userApi = $this->wechat->user;
         // 获取当前粉丝openId
         $openid = $message->FromUserName;
         switch ($message->Event) {
@@ -107,11 +103,10 @@ class WechatController extends Controller
 
     /**
      * 响应文本消息
-     * @param $userAPi
      * @param $message
      * @return Text|Transfer
      */
-    protected function handleText($userAPi, $message){
+    protected function handleText($message){
         $text = new Text();
         switch($message->Content){
             case '##Menu**'://create menu
